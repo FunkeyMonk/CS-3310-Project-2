@@ -26,7 +26,8 @@ def repeated_dijkstra(graph, source):
 def floyd_warshal(graph, source):
     pass
 
-def rand_graph_testing():
+def rand_graph_testing(counter):
+    print("Graph: ", counter+1)
     graph = create_rand_graph()
 
     source = 5 #can change source if u want, even can make it random
@@ -44,10 +45,11 @@ def rand_graph_testing():
 
     print("\nFloyd-Warshal Algorithm")
     print("Runtime: ", start-end, " seconds")
+    print("\n\n")
 
 def main():
     for i in range(5):
-        rand_graph_testing()
+        rand_graph_testing(i)
 
 if __name__ == "__main__":
     main()
