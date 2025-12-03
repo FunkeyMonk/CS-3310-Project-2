@@ -3,10 +3,11 @@ import time
 import heapq
 
 def create_rand_graph():
-    vertices_list = [10, 20, 30] #can add more if necessary
+    vertices_list = [30,40,50] #can add more if necessary
     vertices = random.choice(vertices_list) #grabs random value from vertices list
     density = round(random.uniform(0.1, 0.9), 2) #provides random density
-
+    #density = 0.9 #fixed density for consistent testing
+    
     #create graph using the random vertices and density
     graph = {i: {} for i in range(vertices)}
     for i in range(vertices):
@@ -50,14 +51,51 @@ def dijkstra(graph, source):
 
     return distances
 
-def floyd_warshal(graph, source):
-    pass
+def floyd_warshal(graph):
+    INF = float('infinity')
+    vertices = list(graph.keys())
+    n = len(vertices)
+    index = {v: i for i, v in enumerate(vertices)}
+
+    # Initialize distance matrix
+    dist = [[INF] * n for _ in range(n)]
+    for v in vertices:
+        i = index[v]
+        dist[i][i] = 0
+
+    # Set initial edge weights
+    for u, neighbors in graph.items():
+        i = index[u]
+        for v, w in neighbors.items():
+            j = index[v]
+            if w < dist[i][j]:
+                dist[i][j] = w
+
+    # Floyd–Warshall algorithm
+    for k in range(n):
+        for i in range(n):
+            if dist[i][k] == INF:
+                continue
+            for j in range(n):
+                if dist[k][j] == INF:
+                    continue
+                new_dist = dist[i][k] + dist[k][j]
+                if new_dist < dist[i][j]:
+                    dist[i][j] = new_dist
+
+    # Convert back to dict-of-dicts: {source: {target: distance}}
+    result = {}
+    for i, u in enumerate(vertices):
+        inner = {}
+        for j, v in enumerate(vertices):
+            inner[v] = dist[i][j]
+        result[u] = inner
+
+    return result
 
 def rand_graph_testing(counter):
     print("Graph: ", counter+1)
     graph = create_rand_graph()
-
-    source = 5 #can change source if u want, even can make it random
 
     start = time.perf_counter()
     res = repeated_dijkstra(graph)
@@ -70,7 +108,7 @@ def rand_graph_testing(counter):
     print("Runtime: ", end-start, " seconds")
 
     start = time.perf_counter()
-    res = floyd_warshal(graph, source)
+    res = floyd_warshal(graph)
     end = time.perf_counter()
 
     print("\nFloyd-Warshal Algorithm")
