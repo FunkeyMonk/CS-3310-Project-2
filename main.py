@@ -88,25 +88,26 @@ def floyd_warshal(graph):
     # Set initial edge weights
     for u, neighbors in graph.items():
         i = index[u]
-        row = dist[i]
+        row = dist[i] #cache row
         for v, w in neighbors.items():
             j = index[v]
             if w < row[j]:
                 row[j] = w
 
-    # Floyd–Warshall with minimized Python overhead
+    # Floyd–Warshall main algorithm
     for k in range(n):
-        dist_k = dist[k]      # cache row k
+        dist_k = dist[k]  # cache row k
         for i in range(n):
             dist_i = dist[i]  # cache row i
             dik = dist_i[k]
-            if dik == INF:
+            if dik == INF: # skip the row dist_i if infinity is detected in dist[i][k]
                 continue
             # avoid repeated dist[i][k] lookups
             for j in range(n):
                 dkj = dist_k[j]
-                if dkj == INF:
+                if dkj == INF: # skip the column, one by one if infinity is detected in dist[k][j]
                     continue
+                # compare potential path to current shortest, pick shortest
                 new_dist = dik + dkj
                 if new_dist < dist_i[j]:
                     dist_i[j] = new_dist
