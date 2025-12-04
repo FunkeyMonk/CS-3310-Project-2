@@ -51,47 +51,6 @@ def dijkstra(graph, source):
 
     return distances
 
-def floyd_warshal(graph):
-    INF = float('infinity')
-    vertices = list(graph.keys())
-    n = len(vertices)
-    index = {v: i for i, v in enumerate(vertices)}
-
-    # Initialize distance matrix
-    dist = [[INF] * n for _ in range(n)]
-    for v in vertices:
-        i = index[v]
-        dist[i][i] = 0
-
-    # Set initial edge weights
-    for u, neighbors in graph.items():
-        i = index[u]
-        for v, w in neighbors.items():
-            j = index[v]
-            if w < dist[i][j]:
-                dist[i][j] = w
-
-    # Floyd–Warshall algorithm
-    for k in range(n):
-        for i in range(n):
-            if dist[i][k] == INF:
-                continue
-            for j in range(n):
-                if dist[k][j] == INF:
-                    continue
-                new_dist = dist[i][k] + dist[k][j]
-                if new_dist < dist[i][j]:
-                    dist[i][j] = new_dist
-
-    # Convert back to dict-of-dicts: {source: {target: distance}}
-    result = {}
-    for i, u in enumerate(vertices):
-        inner = {}
-        for j, v in enumerate(vertices):
-            inner[v] = dist[i][j]
-        result[u] = inner
-
-    return result
 
 def rand_graph_testing(counter):
     print("Graph: ", counter+1)
@@ -114,6 +73,55 @@ def rand_graph_testing(counter):
     print("\nFloyd-Warshal Algorithm")
     print("Runtime: ", end-start, " seconds")
     print("\n\n")
+
+def floyd_warshal(graph):
+    INF = float('inf')
+    vertices = list(graph.keys())
+    n = len(vertices)
+    index = {v: i for i, v in enumerate(vertices)}
+
+    # Initialize distance matrix
+    dist = [[INF] * n for _ in range(n)]
+    for i in range(n):
+        dist[i][i] = 0
+
+    # Set initial edge weights
+    for u, neighbors in graph.items():
+        i = index[u]
+        row = dist[i]
+        for v, w in neighbors.items():
+            j = index[v]
+            if w < row[j]:
+                row[j] = w
+
+    # Floyd–Warshall with minimized Python overhead
+    for k in range(n):
+        dist_k = dist[k]      # cache row k
+        for i in range(n):
+            dist_i = dist[i]  # cache row i
+            dik = dist_i[k]
+            if dik == INF:
+                continue
+            # avoid repeated dist[i][k] lookups
+            for j in range(n):
+                dkj = dist_k[j]
+                if dkj == INF:
+                    continue
+                new_dist = dik + dkj
+                if new_dist < dist_i[j]:
+                    dist_i[j] = new_dist
+
+    # Convert back to dict-of-dicts
+    result = {}
+    for i, u in enumerate(vertices):
+        inner = {}
+        row = dist[i]
+        for j, v in enumerate(vertices):
+            inner[v] = row[j]
+        result[u] = inner
+
+    return result
+
 
 def main():
     for i in range(5):
