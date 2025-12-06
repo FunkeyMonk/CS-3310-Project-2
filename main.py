@@ -147,9 +147,14 @@ def fixed_graph_testing(counter):
     print("\n\n")
 
 def main():
-    #for i in range(5):
-    #    rand_graph_testing(i)'
-    fixed_graph_testing(0)
+    currentTest = 1 #0 for fixed graph, 1 for random graphs
+    if currentTest == 0:
+        print("Fixed Graph Testing:\n")
+        fixed_graph_testing(0)
+    else:
+        print("Random Graph Testing:\n")
+        for i in range(5):
+            rand_graph_testing(i)
 
 if __name__ == "__main__":
     main()
