@@ -51,6 +51,47 @@ def dijkstra(graph, source):
 
     return distances
 
+def floyd_warshal(graph):
+    INF = float('infinity')
+    vertices = list(graph.keys())
+    n = len(vertices)
+    index = {v: i for i, v in enumerate(vertices)}
+
+    # Initialize distance matrix
+    dist = [[INF] * n for _ in range(n)]
+    for v in vertices:
+        i = index[v]
+        dist[i][i] = 0
+
+    # Set initial edge weights
+    for u, neighbors in graph.items():
+        i = index[u]
+        for v, w in neighbors.items():
+            j = index[v]
+            if w < dist[i][j]:
+                dist[i][j] = w
+
+    # Floyd–Warshall algorithm
+    for k in range(n):
+        for i in range(n):
+            if dist[i][k] == INF:
+                continue
+            for j in range(n):
+                if dist[k][j] == INF:
+                    continue
+                new_dist = dist[i][k] + dist[k][j]
+                if new_dist < dist[i][j]:
+                    dist[i][j] = new_dist
+
+    # Convert back to dict-of-dicts: {source: {target: distance}}
+    result = {}
+    for i, u in enumerate(vertices):
+        inner = {}
+        for j, v in enumerate(vertices):
+            inner[v] = dist[i][j]
+        result[u] = inner
+
+    return result
 
 def rand_graph_testing(counter):
     print("Graph: ", counter+1)
@@ -74,59 +115,41 @@ def rand_graph_testing(counter):
     print("Runtime: ", end-start, " seconds")
     print("\n\n")
 
-def floyd_warshal(graph):
-    INF = float('inf')
-    vertices = list(graph.keys())
-    n = len(vertices)
-    index = {v: i for i, v in enumerate(vertices)}
+def fixed_graph_testing(counter):
+    print("Graph: ", counter+1)
+    graph = {
+        0: {1: 3, 2: 8, 4: 4},
+        1: {3: 1, 4: 7},
+        2: {1: 4},
+        3: {0: 2, 2: 5},
+        4: {3: 6}
+    }
 
-    # Initialize distance matrix
-    dist = [[INF] * n for _ in range(n)]
-    for i in range(n):
-        dist[i][i] = 0
+    start = time.perf_counter()
+    res = repeated_dijkstra(graph)
+    end = time.perf_counter()
+    
+    for(key, value) in res.items():
+        print(f"From vertex {key}: {value}")
 
-    # Set initial edge weights
-    for u, neighbors in graph.items():
-        i = index[u]
-        row = dist[i] #cache row
-        for v, w in neighbors.items():
-            j = index[v]
-            if w < row[j]:
-                row[j] = w
+    print("\nRepeated Dijkstra's Algorithm")
+    print("Runtime: ", end-start, " seconds\n")
+    
+    start = time.perf_counter()
+    res = floyd_warshal(graph)
+    end = time.perf_counter()
+    
+    for(key, value) in res.items():
+        print(f"From vertex {key}: {value}")
 
-    # Floyd–Warshall main algorithm
-    for k in range(n):
-        dist_k = dist[k]  # cache row k
-        for i in range(n):
-            dist_i = dist[i]  # cache row i
-            dik = dist_i[k]
-            if dik == INF: # skip the row dist_i if infinity is detected in dist[i][k]
-                continue
-            # avoid repeated dist[i][k] lookups
-            for j in range(n):
-                dkj = dist_k[j]
-                if dkj == INF: # skip the column, one by one if infinity is detected in dist[k][j]
-                    continue
-                # compare potential path to current shortest, pick shortest
-                new_dist = dik + dkj
-                if new_dist < dist_i[j]:
-                    dist_i[j] = new_dist
-
-    # Convert back to dict-of-dicts
-    result = {}
-    for i, u in enumerate(vertices):
-        inner = {}
-        row = dist[i]
-        for j, v in enumerate(vertices):
-            inner[v] = row[j]
-        result[u] = inner
-
-    return result
-
+    print("\nFloyd-Warshal Algorithm")
+    print("Runtime: ", end-start, " seconds")
+    print("\n\n")
 
 def main():
-    for i in range(5):
-        rand_graph_testing(i)
+    #for i in range(5):
+    #    rand_graph_testing(i)'
+    fixed_graph_testing(0)
 
 if __name__ == "__main__":
     main()
