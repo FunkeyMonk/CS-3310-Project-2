@@ -3,7 +3,7 @@ import time
 import heapq
 
 def create_rand_graph():
-    vertices_list = [30,40,50] #can add more if necessary
+    vertices_list = [10,20,30] #can add more if necessary
     vertices = random.choice(vertices_list) #grabs random value from vertices list
     density = round(random.uniform(0.1, 0.9), 2) #provides random density
     #density = 0.9 #fixed density for consistent testing
@@ -93,6 +93,75 @@ def floyd_warshal(graph):
 
     return result
 
+def find_all_paths(graph, start, end, path=None):
+        if path is None:
+            path = [start]
+        
+        if start == end:
+            return [path]
+        
+        if start not in graph:
+            return []
+        
+        paths = []
+        for neighbor in graph[start]:
+            if neighbor not in path: # Avoid cycles
+                new_path = path + [neighbor]
+                new_paths = find_all_paths(graph, neighbor, end, new_path)
+                for p in new_paths:
+                    paths.append(p)
+        return paths
+
+#goes through found path and adds weights
+def calculate_path_weight(graph, path):
+    total_weight = 0
+    for i in range(len(path) - 1):
+        u, v = path[i], path[i+1]
+        total_weight += graph[u][v]
+    return total_weight
+    
+# Validation Function (brute-force comparison)
+def validate_algorithms(graph):
+    
+    dijkstra_results = repeated_dijkstra(graph)
+    fw_results = floyd_warshal(graph)
+    
+    vertices = list(graph.keys())
+    all_tests_passed = True
+
+    for start in vertices: #go through every pair
+        for end in vertices:
+            if start == end:
+                continue
+            
+            all_paths = find_all_paths(graph, start, end) #Result of brute force paths
+            
+            path_weights = []
+            if not all_paths: # No path exists
+                true_min = float('infinity')
+            else:
+                for p in all_paths: #calculate weights for each path
+                    w = calculate_path_weight(graph, p)
+                    path_weights.append(w)
+                true_min = min(path_weights) #get minimum weight from all paths of the pair
+
+            #get results of pair from both algorithms
+            d_res = dijkstra_results[start][end]
+            fw_res = fw_results[start][end]
+            
+            #compares the results to the bruteforce
+            match_dijkstra = (d_res == true_min)
+            match_fw = (fw_res == true_min)
+            
+            if not match_dijkstra or not match_fw:
+                all_tests_passed = False
+            
+    print("Result:")
+    if all_tests_passed:
+        print("All pairs match\n")
+    else:
+        print("Pairs do not match\n")
+        
 def rand_graph_testing(counter):
     print("Graph: ", counter+1)
     graph = create_rand_graph()
@@ -112,8 +181,8 @@ def rand_graph_testing(counter):
     end = time.perf_counter()
 
     print("\nFloyd-Warshal Algorithm")
-    print("Runtime: ", end-start, " seconds")
-    print("\n\n")
+    print("Runtime: ", end-start, " seconds\n")
+    return graph
 
 def fixed_graph_testing(counter):
     print("Graph: ", counter+1)
@@ -143,18 +212,22 @@ def fixed_graph_testing(counter):
         print(f"From vertex {key}: {value}")
 
     print("\nFloyd-Warshal Algorithm")
-    print("Runtime: ", end-start, " seconds")
-    print("\n\n")
+    print("Runtime: ", end-start, " seconds\n")
+    return graph
 
 def main():
-    currentTest = 1 #0 for fixed graph, 1 for random graphs
+    currentTest = 0 #0 for fixed graph, 1 for random graphs
+    graph = None
     if currentTest == 0:
         print("Fixed Graph Testing:\n")
-        fixed_graph_testing(0)
+        graph = fixed_graph_testing(0)
+        
+        print("Validation Testing")     #Validation of both algorithms for fixed graph
+        validate_algorithms(graph)      #has a time complexity of O(V*V!) so only use for small graphs unless you want to blow up your computer
     else:
         print("Random Graph Testing:\n")
         for i in range(5):
-            rand_graph_testing(i)
+            graph = rand_graph_testing(i)
 
 if __name__ == "__main__":
     main()
